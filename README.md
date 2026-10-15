@@ -63,6 +63,64 @@ FanPilot is distributed as source. There are no prebuilt binaries: you build and
 
 ## Install
 
+### 🤖 Insert this prompt into your agent
+
+Paste this into Claude Code, Codex, Cursor or any coding agent that can run terminal commands. It does every step below for you and only stops for the one thing that needs you: approving the helper in System Settings.
+
+```text
+Install FanPilot (https://github.com/notvasub/fanpilot), an open-source menu-bar fan
+controller for Apple Silicon Macs, on this Mac. Run each step in the terminal, check its
+output, and stop to tell me if anything fails. Do not use sudo.
+
+1. Preflight checks. Stop and explain if any fail:
+   - `uname -m` must print `arm64` (Apple Silicon).
+   - `sw_vers -productVersion` must be 14.0 or later.
+   - `sysctl -n hw.model` must not be a MacBook Air (fanless; nothing to control).
+   - `swift --version` must work and report Swift 6 or later. If it doesn't, tell me to
+     install Xcode 16+ from the App Store, open it once, then rerun this prompt.
+
+2. Clone the repo into ~/fanpilot (if that folder already exists and is this repo,
+   `git pull` instead):
+   git clone https://github.com/notvasub/fanpilot.git ~/fanpilot
+   cd ~/fanpilot
+
+3. Run the tests: `swift test`. All tests must pass before continuing.
+
+4. Check for a code-signing identity: `security find-identity -v -p codesigning`.
+   - If an "Apple Development" or "Developer ID Application" identity is listed, continue.
+   - If none is listed, tell me that the build will be ad-hoc signed (works, but the
+     helper must be reinstalled after every rebuild) and that I can get a free identity
+     in Xcode → Settings → Accounts → Manage Certificates → + → Apple Development.
+     Then continue with ad-hoc signing.
+
+5. Build, sign and install the app to /Applications:
+   scripts/build-app.sh --install
+   Confirm the output ends with "Installed /Applications/FanPilot.app".
+
+6. If Macs Fan Control is running (`pgrep -x "Macs Fan Control"`), tell me to quit it.
+   FanPilot pauses fan control while it runs.
+
+7. Register the root helper:
+   /Applications/FanPilot.app/Contents/MacOS/FanPilot --install-helper
+   This opens System Settings → General → Login Items. Tell me to turn on "FanPilot"
+   under "Allow in the Background" (it asks for my admin password), and wait for me to
+   say I've done it.
+
+8. Verify: /Applications/FanPilot.app/Contents/MacOS/FanPilot --helper-status
+   must print "helper: enabled". If it says "requires approval", repeat step 7's
+   instructions.
+
+9. Launch the app: open /Applications/FanPilot.app
+
+10. Finish by telling me:
+    - A fan icon is now in the menu bar; click it for temperatures, RPM and profiles.
+    - fn F5 = faster, fn F4 = slower, fn ⇧F4 = back to Automatic, fn ⇧F5 = next profile.
+    - To uninstall: /Applications/FanPilot.app/Contents/MacOS/FanPilot --uninstall-helper
+      then rm -rf /Applications/FanPilot.app
+```
+
+### Manual install
+
 **1. Clone and test**
 
 ```bash
@@ -110,7 +168,7 @@ Run `scripts/build-app.sh` without `--install` to only build into `build/FanPilo
 1. **Quit Macs Fan Control** if you use it. Its helper can stay installed; FanPilot pauses itself while Macs Fan Control is running so the two never fight.
 2. Open **/Applications/FanPilot.app**. A fan icon appears in the menu bar.
 3. Click it, then **Install Helper…**.
-4. macOS opens **System Settings → General → Login Items**. Under **Allow in the Background**, turn on **FanPilot**. This asks for an admin password.
+4. macOS opens **System Settings → General → Login Items** (you can also do this step from a terminal with `/Applications/FanPilot.app/Contents/MacOS/FanPilot --install-helper`). Under **Allow in the Background**, turn on **FanPilot**. This asks for an admin password.
 5. Press `fn F5` a few times. The HUD shows the new manual speed (for example `Manual 50%  ≈ 5,072 RPM`) and the fans spin up. Press `fn ⇧F4` to hand them back to Automatic.
 
 Optional: turn on **Launch at Login** from the status menu at the bottom of the panel.
