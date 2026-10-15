@@ -1,0 +1,315 @@
+---
+import Icon from './Icon.astro';
+import { BUILT_INS, modeSummary, curveFraction, type FanMode } from '../lib/control';
+import type { IconName } from '../lib/icons';
+
+const meta: Record<string, { tint: string; icon: IconName; text: string }> = {
+  Automatic: { tint: 'var(--zinc)', icon: 'auto', text: "macOS runs the fans with its own thermal management. On the M5 Pro they stop completely at idle." },
+  Quiet: { tint: 'var(--sky)', icon: 'moon', text: 'Fans wait until the average die temperature reaches 60 °C, then ramp to full speed at 90 °C.' },
+  Balanced: { tint: 'var(--mint)', icon: 'gauge', text: 'Starts at 50 °C average and reaches full speed at 80 °C.' },
+  Performance: { tint: 'var(--amber)', icon: 'bolt', text: 'Follows the hottest die instead of the average, from 45 °C to full speed at 75 °C.' },
+  'Full Speed': { tint: 'var(--hot)', icon: 'wind', text: 'Both fans held at 7,826 RPM, the top of their range, until you change it.' },
+};
+
+// Chart geometry: 30–100 °C on x, 0–100% on y.
+const CW = 520, CH = 200, T0 = 30, T1 = 100;
+const x = (t: number) => ((t - T0) / (T1 - T0)) * CW;
+const y = (p: number) => CH - (p / 100) * (CH - 8) - 4;
+const pathFor = (mode: FanMode) => {
+  if (mode.kind === 'automatic') return null;
+  const pts: string[] = [];
+  for (let t = T0; t <= T1; t += 1) {
+    const p = mode.kind === 'fixed' ? mode.percent : curveFraction(t, mode.from, mode.to) * 100;
+    pts.push(`${x(t).toFixed(1)},${y(p).toFixed(1)}`);
+  }
+  return `M${pts.join('L')}`;
+};
+const cards = BUILT_INS.map((p) => ({ ...p, ...meta[p.name], summary: modeSummary(p.modes[0]), path: pathFor(p.modes[0]) }));
+---
+<section class="prof" id="profiles" aria-labelledby="prof-title" data-prof>
+  <div class="prof__sticky">
+    <div class="wrap prof__grid">
+      <div class="prof__copy">
+        <h2 class="h2" id="prof-title">Five profiles built in. Add your own.</h2>
+        <p class="lead">
+          A profile sets each fan to Automatic, a fixed share of its range, or a temperature curve. Pick one from the menu, press <kbd>fn</kbd>&nbsp;<kbd>⇧F5</kbd> to step through them, or save the speed you're on as a new one.
+        </p>
+        <ol class="prof__index" data-prof-index>
+          {
+            cards.map((c, i) => (
+              <li>
+                <button type="button" data-prof-jump={i} style={`--tint:${c.tint}`}>
+                  <i aria-hidden="true" />
+                  {c.name}
+                </button>
+              </li>
+            ))
+          }
+        </ol>
+      </div>
+
+      <div class="prof__stack" data-prof-stack>
+        {
+          cards.map((c, i) => (
+            <article class="pcard" data-pcard={i} data-profile-id={c.id} style={`--tint:${c.tint}`} aria-label={`${c.name} profile`}>
+              <header class="pcard__head">
+                <span class="pcard__icon"><Icon name={c.icon} /></span>
+                <div>
+                  <h3 class="pcard__name">{c.name}</h3>
+                  <p class="pcard__sum">{c.summary}</p>
+                </div>
+                <span class="pcard__active" data-pcard-active hidden>In use</span>
+              </header>
+              <p class="pcard__text">{c.text}</p>
+              <figure class="pcard__chart">
+                <svg viewBox={`-4 -4 ${CW + 8} ${CH + 26}`} role="img" aria-label={`${c.name}: fan speed against CPU temperature`}>
+                  {[40, 50, 60, 70, 80, 90].map((t) => <line x1={x(t)} x2={x(t)} y1="0" y2={CH} class="pcard__grid" />)}
+                  <line x1="0" x2={CW} y1={CH} y2={CH} class="pcard__axis" />
+                  {c.path ? (
+                    <path d={c.path} class="pcard__line" />
+                  ) : (
+                    <path d={`M0,${y(0)} L${x(60)},${y(0)} L${x(96)},${y(92)} L${CW},${y(92)}`} class="pcard__line pcard__line--auto" />
+                  )}
+                  <g data-pcard-dot>
+                    <line class="pcard__now" x1="0" x2="0" y1="0" y2={CH} />
+                    <circle r="6" cx="0" cy={CH} />
+                  </g>
+                  {[30, 50, 70, 90].map((t) => <text x={x(t)} y={CH + 20} class="pcard__tick">{t} °C</text>)}
+                </svg>
+                <figcaption class="tnum" data-pcard-now>Now: 44 °C</figcaption>
+              </figure>
+              <footer class="pcard__foot">
+                <button class="btn btn--ghost btn--sm" type="button" data-use-profile={c.id}>Use {c.name}</button>
+              </footer>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+</section>
+
+<style is:global>
+  .prof {
+    position: relative;
+    height: calc(100vh + 5 * 55vh);
+  }
+  .prof__sticky {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+  }
+  .prof__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1fr);
+    gap: clamp(2rem, 6vw, 6rem);
+    align-items: center;
+  }
+  .prof__copy {
+    display: grid;
+    gap: 1.5rem;
+  }
+  .prof__index {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-top: 0.5rem;
+  }
+  .prof__index button {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    height: 40px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    font-size: 1.125rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--fog-2);
+    transition: color 0.25s;
+  }
+  .prof__index i {
+    width: 28px;
+    height: 6px;
+    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.14);
+    transition:
+      background-color 0.25s,
+      width 0.35s var(--ease-out);
+  }
+  .prof__index button[aria-current='true'] {
+    color: var(--frost);
+  }
+  .prof__index button[aria-current='true'] i {
+    width: 48px;
+    background: var(--tint);
+  }
+  .prof__index button:hover {
+    color: var(--frost);
+  }
+  .prof__stack {
+    position: relative;
+    height: min(560px, 74vh);
+    perspective: 1600px;
+  }
+  .pcard {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    padding: clamp(1.5rem, 3vw, 2.25rem);
+    border-radius: 28px;
+    background:
+      linear-gradient(150deg, color-mix(in srgb, var(--tint) 18%, transparent), transparent 46%),
+      linear-gradient(180deg, #19191d, #121215);
+    border: 1px solid color-mix(in srgb, var(--tint) 28%, transparent);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.07),
+      0 40px 80px -30px rgba(0, 0, 0, 0.85);
+    transform-origin: 50% 0%;
+    backface-visibility: hidden;
+  }
+  .pcard__head {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .pcard__icon {
+    display: grid;
+    place-items: center;
+    width: 64px;
+    height: 64px;
+    border-radius: 17px;
+    background: color-mix(in srgb, var(--tint) 16%, transparent);
+    color: var(--tint);
+    flex: none;
+  }
+  .pcard__icon .icon {
+    width: 34px;
+    height: 34px;
+  }
+  .pcard__name {
+    font-size: clamp(1.75rem, 3vw, 2.25rem);
+    font-weight: 780;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+  }
+  .pcard__sum {
+    color: var(--fog);
+    font-size: 1rem;
+  }
+  .pcard__active {
+    margin-left: auto;
+    align-self: flex-start;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    background: color-mix(in srgb, var(--tint) 20%, transparent);
+    color: var(--tint);
+  }
+  .pcard__active[hidden] {
+    display: none;
+  }
+  .pcard__text {
+    color: var(--fog);
+    max-width: 40ch;
+  }
+  .pcard__chart {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .pcard__chart svg {
+    width: 100%;
+    flex: 1;
+    min-height: 0;
+    overflow: visible;
+  }
+  .pcard__grid {
+    stroke: rgba(255, 255, 255, 0.06);
+    stroke-width: 1;
+  }
+  .pcard__axis {
+    stroke: rgba(255, 255, 255, 0.18);
+  }
+  .pcard__line {
+    fill: none;
+    stroke: var(--tint);
+    stroke-width: 4;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+  }
+  .pcard__line--auto {
+    stroke-dasharray: 9 9;
+    stroke-width: 3;
+  }
+  .pcard__now {
+    stroke: rgba(255, 255, 255, 0.35);
+    stroke-dasharray: 3 4;
+  }
+  .pcard__chart circle {
+    fill: var(--frost);
+    stroke: #121215;
+    stroke-width: 3;
+  }
+  .pcard__tick {
+    fill: var(--fog-2);
+    font-size: 13px;
+    text-anchor: middle;
+    font-family: var(--sans);
+  }
+  .pcard__chart figcaption {
+    font-size: 0.9375rem;
+    color: var(--fog);
+  }
+  .pcard__foot {
+    display: flex;
+  }
+
+  @media (max-width: 900px) {
+    .prof {
+      height: auto;
+      padding-block: var(--section);
+    }
+    .prof__sticky {
+      position: static;
+      height: auto;
+      display: block;
+      overflow: visible;
+    }
+    .prof__grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .prof__index {
+      display: none;
+    }
+    .prof__stack {
+      height: auto;
+      display: flex;
+      gap: 14px;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      margin-inline: calc(-1 * var(--gutter));
+      padding: 4px var(--gutter) 24px;
+      scrollbar-width: none;
+      perspective: none;
+    }
+    .pcard {
+      position: relative;
+      inset: auto;
+      flex: 0 0 min(86vw, 420px);
+      min-height: 480px;
+      scroll-snap-align: center;
+      transform: none !important;
+      opacity: 1 !important;
+    }
+  }
+</style>

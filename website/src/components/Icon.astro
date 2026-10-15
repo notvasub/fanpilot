@@ -1,0 +1,13 @@
+---
+import { icons, fanFill, fanOutline, type IconName } from '../lib/icons';
+
+interface Props {
+  name: IconName | 'fan' | 'fanOutline';
+  class?: string;
+  size?: number;
+}
+const { name, class: className = '', size } = Astro.props;
+const svg = name === 'fan' ? fanFill : name === 'fanOutline' ? fanOutline : icons[name];
+const style = size ? `width:${size}px;height:${size}px` : undefined;
+---
+<span class:list={['icon', className]} style={style} set:html={svg} />

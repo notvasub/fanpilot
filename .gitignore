@@ -1,0 +1,22 @@
+# Swift / build output
+.build/
+build/
+.swiftpm/
+*.xcodeproj/
+DerivedData/
+
+# macOS
+.DS_Store
+
+# Local tooling state
+.claude/
+.impeccable/
+graphify-out/
+PRODUCT.md
+
+# Mixkit SFX may not be redistributed as standalone files; see assets/sfx/CREDITS.md
+assets/sfx/*.mp3
+assets/sfx/*.wav
+
+# Generated launch-video audio
+launch-video/public/*.wav

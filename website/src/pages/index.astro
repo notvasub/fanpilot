@@ -1,0 +1,34 @@
+---
+import Base from '../layouts/Base.astro';
+import Nav from '../components/Nav.astro';
+import Hero from '../components/Hero.astro';
+import Hud from '../components/Hud.astro';
+import Stage from '../components/Stage.astro';
+import Shortcuts from '../components/Shortcuts.astro';
+import Profiles from '../components/Profiles.astro';
+import Curves from '../components/Curves.astro';
+import Safety from '../components/Safety.astro';
+import Install from '../components/Install.astro';
+import Footer from '../components/Footer.astro';
+---
+<Base
+  title="FanPilot: fan control for Apple Silicon, on your keyboard"
+  description="Open-source fan control for Apple Silicon Macs. Press fn F5 for faster fans, fn F4 for slower, switch profiles, or draw your own temperature curve. Whenever FanPilot stops, macOS gets the fans back."
+>
+  <Nav />
+  <main id="main">
+    <Hero />
+    <Stage />
+    <Shortcuts />
+    <Profiles />
+    <Curves />
+    <Safety />
+    <Install />
+  </main>
+  <Footer />
+  <Hud />
+</Base>
+
+<script>
+  import '../scripts/main';
+</script>

@@ -1,0 +1,560 @@
+---
+import Icon from './Icon.astro';
+import timeline from '../../../launch-video/src/timeline.json';
+
+// Chapters come straight from the film's own timeline.
+const names: Record<string, string> = {
+  hook: 'Hook',
+  turn: 'The turn',
+  reveal: 'Reveal',
+  hero: 'Keyboard',
+  profiles: 'Profiles',
+  curves: 'Curves',
+  terminal: 'Safety',
+  payoff: 'Payoff',
+  end: 'End card',
+};
+const chapters = Object.entries(timeline.scenes).map(([id, [start]]) => ({ id, name: names[id] ?? id, start }));
+const duration = timeline.duration;
+const fmt = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+
+// Lighting rig: seven cans across the truss, alternating the film's two temperatures.
+const lamps = [
+  { x: 8, c: 'var(--cool)' },
+  { x: 22, c: 'var(--frost)' },
+  { x: 36, c: 'var(--hot)' },
+  { x: 50, c: 'var(--frost)' },
+  { x: 64, c: 'var(--cool)' },
+  { x: 78, c: 'var(--frost)' },
+  { x: 92, c: 'var(--hot)' },
+].map((l, i) => ({ ...l, i, rot: ((50 - l.x) / 42) * 22 }));
+
+// Audience: three rows of head-and-shoulder silhouettes, generated deterministically.
+let seed = 11;
+const rand = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+const W = 1600;
+const rows = [
+  { r: 15, y: 70, gap: 46, fill: '#101014', plane: '-0.04' },
+  { r: 22, y: 92, gap: 62, fill: '#0b0b0e', plane: '-0.1' },
+  { r: 34, y: 128, gap: 92, fill: '#060607', plane: '-0.2' },
+].map((row, k) => {
+  const people: string[] = [];
+  for (let x = -row.gap / 2 + rand() * row.gap; x < W + row.gap; x += row.gap * (0.82 + rand() * 0.36)) {
+    const r = row.r * (0.86 + rand() * 0.28);
+    const cx = x;
+    const cy = row.y - r * 1.4 + rand() * r * 0.5;
+    const sw = r * (2.7 + rand() * 0.5);
+    const top = cy + r * 1.05;
+    const head = `M${(cx - r * 0.82).toFixed(1)},${cy.toFixed(1)}a${(r * 0.82).toFixed(1)},${r.toFixed(1)} 0 1,1 ${(r * 1.64).toFixed(1)},0a${(r * 0.82).toFixed(1)},${r.toFixed(1)} 0 1,1 ${(-r * 1.64).toFixed(1)},0Z`;
+    const body = `M${(cx - sw / 2).toFixed(1)},${(row.y + 60).toFixed(1)}L${(cx - sw / 2).toFixed(1)},${(top + r * 0.9).toFixed(1)}Q${(cx - sw / 2).toFixed(1)},${top.toFixed(1)} ${(cx - r * 0.7).toFixed(1)},${(top - r * 0.08).toFixed(1)}L${(cx + r * 0.7).toFixed(1)},${(top - r * 0.08).toFixed(1)}Q${(cx + sw / 2).toFixed(1)},${top.toFixed(1)} ${(cx + sw / 2).toFixed(1)},${(top + r * 0.9).toFixed(1)}L${(cx + sw / 2).toFixed(1)},${(row.y + 60).toFixed(1)}Z`;
+    people.push(head + body);
+  }
+  return { ...row, k, d: people.join('') };
+});
+---
+<section class="film" id="film" aria-labelledby="film-title">
+  <div class="wrap film__head">
+    <h2 class="h2" id="film-title">See it in 35 seconds.</h2>
+    <p class="lead">
+      The launch film. Turn your sound on.
+    </p>
+  </div>
+
+  <div class="stage" data-stage>
+    <div class="stage__rig" aria-hidden="true">
+      <div class="stage__truss"></div>
+      {
+        lamps.map((l) => (
+          <div class="stage__lamp" style={`--x:${l.x}%;--c:${l.c};--rot:${l.rot}deg;--i:${l.i}`} data-lamp>
+            <span class="stage__beam" />
+            <span class="stage__can" />
+          </div>
+        ))
+      }
+    </div>
+
+    <div class="stage__house" aria-hidden="true"></div>
+
+    <div class="stage__screenwrap" data-screenwrap>
+      <canvas class="stage__ambi" data-ambi width="32" height="18" aria-hidden="true"></canvas>
+      <div class="stage__screen" data-screen>
+        <video
+          class="stage__video"
+          data-film
+          playsinline
+          muted
+          loop
+          preload="metadata"
+          poster="/media/poster.jpg"
+          aria-describedby="film-desc"
+          data-teaser="/media/fanpilot-teaser.mp4"
+          data-main="/media/fanpilot-launch.mp4"
+        >
+        </video>
+        <button class="stage__play" type="button" data-film-play>
+          <span class="stage__play-btn"><Icon name="play" /></span>
+          <span class="stage__play-text"><b>Play the film</b><span>{fmt(duration)} with sound</span></span>
+        </button>
+        <div class="stage__controls" data-film-controls hidden>
+          <button class="stage__ctl" type="button" data-film-toggle aria-label="Pause"><Icon name="pause" /></button>
+          <span class="stage__time tnum" data-film-time>0:00 / {fmt(duration)}</span>
+          <div class="stage__scrub">
+            <input type="range" min="0" max={duration} step="0.05" value="0" data-film-scrub aria-label="Seek" />
+            <div class="stage__ticks" aria-hidden="true">
+              {chapters.slice(1).map((c) => <i style={`left:${(c.start / duration) * 100}%`} />)}
+            </div>
+          </div>
+          <button class="stage__ctl" type="button" data-film-mute aria-label="Mute"><Icon name="volume" /></button>
+          <button class="stage__ctl" type="button" data-film-full aria-label="Full screen"><Icon name="expand" /></button>
+        </div>
+      </div>
+      <p class="sr-only" id="film-desc">
+        On-screen text: Your Mac runs hot. And you can't do anything about it. Until now. FanPilot. Fan control for Apple Silicon. On your keyboard. Faster. Slower. One key back to auto. Profiles for every mood. Draw the curve. Fans follow. Returns to auto on quit. Never below SMC minimum. Signed helper, XPC-verified. Cool. Quiet. Yours. FanPilot. Take the controls.
+      </p>
+    </div>
+
+    <div class="stage__floor" aria-hidden="true">
+      <canvas class="stage__reflect" data-reflect width="160" height="90"></canvas>
+    </div>
+
+    <div class="stage__crowd" aria-hidden="true">
+      {
+        rows.map((row) => (
+          <svg class={`stage__row stage__row--${row.k}`} viewBox={`0 0 ${W} ${row.y + 60}`} preserveAspectRatio="xMidYMax slice" data-plane={row.plane}>
+            <path d={row.d} fill={row.fill} />
+          </svg>
+        ))
+      }
+      <div class="stage__phone" style="--px: 22%; --pr: -9deg" data-phone><canvas width="64" height="36"></canvas></div>
+      <div class="stage__phone" style="--px: 71%; --pr: 7deg" data-phone><canvas width="64" height="36"></canvas></div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <ol class="chapters" aria-label="Chapters">
+      {
+        chapters.map((c) => (
+          <li>
+            <button type="button" data-chapter={c.start}>
+              <span class="tnum">{fmt(c.start)}</span>
+              {c.name}
+            </button>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</section>
+
+<style is:global>
+  .film {
+    position: relative;
+    padding-top: var(--section);
+    padding-bottom: calc(var(--section) * 0.6);
+    background: linear-gradient(to bottom, var(--ink), #050506 30%, #050506 80%, var(--ink));
+  }
+  .film__head {
+    display: grid;
+    gap: 1.25rem;
+    max-width: calc(52rem + 2 * var(--gutter));
+    margin-left: 0;
+    margin-inline: auto;
+    text-align: center;
+    justify-items: center;
+  }
+  .stage {
+    --house: 1;
+    position: relative;
+    margin-top: clamp(1rem, 3vw, 2rem);
+    padding: clamp(120px, 14vw, 190px) var(--gutter) 0;
+    overflow: hidden;
+    isolation: isolate;
+  }
+  .stage__rig {
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+  }
+  .stage__truss {
+    position: absolute;
+    left: 3%;
+    right: 3%;
+    top: 34px;
+    height: 10px;
+    background:
+      repeating-linear-gradient(60deg, transparent 0 9px, rgba(255, 255, 255, 0.08) 9px 11px),
+      repeating-linear-gradient(-60deg, transparent 0 9px, rgba(255, 255, 255, 0.08) 9px 11px);
+    border-top: 1px solid rgba(255, 255, 255, 0.14);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+  }
+  .stage__lamp {
+    --on: 0;
+    position: absolute;
+    left: var(--x);
+    top: 40px;
+    width: 0;
+  }
+  .stage__can {
+    position: absolute;
+    left: -11px;
+    top: 0;
+    width: 22px;
+    height: 30px;
+    border-radius: 4px 4px 9px 9px;
+    background: linear-gradient(180deg, #2a2a2f, #121215);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    transform: rotate(var(--rot));
+    transform-origin: 50% 0;
+  }
+  .stage__can::after {
+    content: '';
+    position: absolute;
+    left: 3px;
+    right: 3px;
+    bottom: 2px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--c);
+    opacity: calc(0.15 + var(--on) * 0.85);
+  }
+  /* Beams are literal light: additive, soft-edged, and they only exist while a lamp is on. */
+  .stage__beam {
+    position: absolute;
+    left: -170px;
+    top: 26px;
+    width: 340px;
+    height: 120vh;
+    max-height: 1100px;
+    transform: rotate(var(--rot));
+    transform-origin: 50% 0;
+    clip-path: polygon(46% 0, 54% 0, 100% 100%, 0 100%);
+    background:
+      radial-gradient(40% 60% at 50% 0%, color-mix(in srgb, var(--c) 45%, transparent), transparent 70%),
+      linear-gradient(to bottom, color-mix(in srgb, var(--c) 30%, transparent) 0%, color-mix(in srgb, var(--c) 7%, transparent) 40%, transparent 72%);
+    filter: blur(12px);
+    -webkit-mask-image: linear-gradient(to right, transparent 8%, #000 38%, #000 62%, transparent 92%);
+    mask-image: linear-gradient(to right, transparent 8%, #000 38%, #000 62%, transparent 92%);
+    mix-blend-mode: screen;
+    opacity: calc(var(--on) * var(--house) * 0.42);
+    transition: opacity 0.6s ease;
+  }
+  .stage__house {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(60% 40% at 50% 8%, rgba(255, 255, 255, calc(var(--lit, 0) * 0.04)), transparent 70%),
+      radial-gradient(50% 30% at 50% 100%, rgba(56, 189, 248, calc(var(--lit, 0) * 0.05)), transparent 70%);
+  }
+  .stage__screenwrap {
+    position: relative;
+    z-index: 2;
+    width: min(1120px, 100%);
+    margin-inline: auto;
+    transform-origin: 50% 100%;
+    transform: perspective(1600px) rotateX(var(--stage-tilt, 0deg)) scale(var(--stage-scale, 1));
+  }
+  .stage__ambi {
+    position: absolute;
+    inset: -12% -8%;
+    width: 116%;
+    height: 124%;
+    filter: blur(70px) saturate(1.4);
+    opacity: calc(0.25 + var(--playing, 0) * 0.4);
+    z-index: -1;
+    transition: opacity 0.8s ease;
+  }
+  .stage__screen {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    border-radius: 14px;
+    padding: 0;
+    background: #000;
+    border: 10px solid #060607;
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.09),
+      0 40px 90px -30px rgba(0, 0, 0, 0.9);
+    overflow: hidden;
+  }
+  .stage__video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    background: #000;
+  }
+  .stage__play {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-start;
+    gap: 14px;
+    padding: clamp(16px, 3vw, 32px);
+    border: 0;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.55), transparent 45%);
+    color: var(--frost);
+    text-align: left;
+  }
+  .stage__play[hidden] {
+    display: none;
+  }
+  .stage__play-btn {
+    display: grid;
+    place-items: center;
+    width: clamp(52px, 6vw, 72px);
+    height: clamp(52px, 6vw, 72px);
+    border-radius: 50%;
+    background: var(--frost);
+    color: var(--ink);
+    box-shadow: 0 10px 30px -8px rgba(0, 0, 0, 0.7);
+    transition: transform 0.25s var(--ease-spring);
+  }
+  .stage__play-btn .icon {
+    width: 42%;
+    height: 42%;
+    margin-left: 6%;
+  }
+  .stage__play:hover .stage__play-btn {
+    transform: scale(1.06);
+  }
+  .stage__play-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.25;
+  }
+  .stage__play-text b {
+    font-size: clamp(1.05rem, 1.6vw, 1.25rem);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .stage__play-text span {
+    font-size: 0.875rem;
+    color: rgba(245, 245, 247, 0.75);
+  }
+  .stage__controls {
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 44px;
+    padding: 0 10px;
+    border-radius: 12px;
+    background: rgba(20, 20, 24, 0.62);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    backdrop-filter: blur(20px) saturate(160%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: opacity 0.3s ease;
+  }
+  .stage__controls[hidden] {
+    display: none;
+  }
+  .stage__screen.is-idle .stage__controls {
+    opacity: 0;
+  }
+  .stage__ctl {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--frost);
+  }
+  .stage__ctl:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+  .stage__ctl .icon {
+    width: 18px;
+    height: 18px;
+  }
+  .stage__time {
+    font: 500 13px/1 var(--mac);
+    color: rgba(245, 245, 247, 0.8);
+    white-space: nowrap;
+  }
+  .stage__scrub {
+    position: relative;
+    flex: 1;
+    display: flex;
+    align-items: center;
+  }
+  .stage__scrub input {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 24px;
+    margin: 0;
+    background: transparent;
+    --fill: 0%;
+  }
+  .stage__scrub input::-webkit-slider-runnable-track {
+    height: 4px;
+    border-radius: 2px;
+    background: linear-gradient(to right, var(--frost) var(--fill), rgba(255, 255, 255, 0.22) var(--fill));
+  }
+  .stage__scrub input::-moz-range-track {
+    height: 4px;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.22);
+  }
+  .stage__scrub input::-moz-range-progress {
+    height: 4px;
+    background: var(--frost);
+  }
+  .stage__scrub input::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 12px;
+    height: 12px;
+    margin-top: -4px;
+    border-radius: 50%;
+    background: var(--frost);
+    border: 0;
+  }
+  .stage__scrub input::-moz-range-thumb {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--frost);
+    border: 0;
+  }
+  .stage__ticks {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+  .stage__ticks i {
+    position: absolute;
+    top: 50%;
+    width: 2px;
+    height: 8px;
+    margin: -4px 0 0 -1px;
+    border-radius: 1px;
+    background: rgba(10, 10, 11, 0.85);
+  }
+  .stage__floor {
+    position: relative;
+    z-index: 1;
+    width: min(1120px, 100%);
+    height: clamp(90px, 12vw, 170px);
+    margin: 0 auto;
+    perspective: 400px;
+  }
+  .stage__reflect {
+    width: 100%;
+    height: 100%;
+    transform: rotateX(58deg) scaleY(-1);
+    transform-origin: 50% 0;
+    filter: blur(10px) saturate(1.2);
+    opacity: calc(0.18 + var(--playing, 0) * 0.22);
+    -webkit-mask-image: linear-gradient(to top, transparent 10%, #000 100%);
+    mask-image: linear-gradient(to top, transparent 10%, #000 100%);
+  }
+  .stage__crowd {
+    position: relative;
+    z-index: 3;
+    height: clamp(120px, 15vw, 210px);
+    margin: clamp(-120px, -9vw, -70px) calc(-1 * var(--gutter)) 0;
+    pointer-events: none;
+  }
+  .stage__row {
+    position: absolute;
+    left: -2%;
+    width: 104%;
+    bottom: 0;
+    height: 100%;
+  }
+  .stage__row--0 {
+    height: 62%;
+    bottom: 34%;
+  }
+  .stage__row--1 {
+    height: 74%;
+    bottom: 16%;
+    filter: blur(0.4px);
+  }
+  .stage__row--2 {
+    filter: blur(1.4px);
+  }
+  .stage__phone {
+    position: absolute;
+    left: var(--px);
+    bottom: 38%;
+    width: clamp(26px, 3vw, 40px);
+    aspect-ratio: 9 / 17;
+    padding: 2px;
+    border-radius: 6px;
+    background: #050506;
+    transform: rotate(var(--pr));
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06);
+  }
+  .stage__phone canvas {
+    width: 100%;
+    height: 100%;
+    border-radius: 4px;
+    object-fit: cover;
+    opacity: calc(0.35 + var(--playing, 0) * 0.65);
+  }
+  .chapters {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 2.5rem;
+  }
+  .chapters button {
+    display: inline-flex;
+    gap: 8px;
+    align-items: baseline;
+    height: 34px;
+    padding: 0 12px;
+    border-radius: 9px;
+    border: 1px solid var(--line);
+    background: transparent;
+    font-size: 0.875rem;
+    color: var(--fog);
+    transition:
+      color 0.2s,
+      border-color 0.2s,
+      background-color 0.2s;
+  }
+  .chapters button span {
+    color: var(--fog-2);
+  }
+  .chapters button:hover {
+    color: var(--frost);
+    border-color: var(--line-2);
+  }
+  .chapters button[aria-current='true'] {
+    color: var(--frost);
+    border-color: color-mix(in srgb, var(--frost) 40%, transparent);
+    background: rgba(255, 255, 255, 0.05);
+  }
+  @media (max-width: 700px) {
+    .stage__lamp:nth-child(odd of .stage__lamp) {
+      display: none;
+    }
+    .stage__time {
+      display: none;
+    }
+    .stage__controls {
+      left: 6px;
+      right: 6px;
+      bottom: 6px;
+      gap: 4px;
+    }
+    .stage__screen {
+      border-width: 5px;
+      border-radius: 10px;
+    }
+    .stage__phone {
+      display: none;
+    }
+  }
+</style>

@@ -1,0 +1,69 @@
+---
+// Mirrors HUDView in Sources/FanPilot/HUD.swift: 240×120, centred, 18% up from the bottom of the screen.
+import { fanFill } from '../lib/icons';
+---
+<div class="hud vibrancy mac-ui" data-hud role="status" aria-live="polite" aria-atomic="true">
+  <span class="hud__fan" data-hud-fan set:html={fanFill} />
+  <b class="hud__title tnum" data-hud-title>Automatic</b>
+  <div class="segbar hud__bar" data-hud-bar>
+    {Array.from({ length: 10 }, () => <i />)}
+  </div>
+  <span class="hud__detail tnum" data-hud-detail>Automatic</span>
+</div>
+
+<style is:global>
+  .hud {
+    position: fixed;
+    z-index: 80;
+    left: 50%;
+    bottom: 18vh;
+    width: 240px;
+    height: 120px;
+    margin-left: -120px;
+    padding: 14px 16px;
+    border-radius: 18px;
+    background: rgba(44, 44, 50, 0.66);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    pointer-events: none;
+    opacity: 0;
+    transform: scale(0.94);
+    transition:
+      opacity 0.35s ease,
+      transform 0.35s var(--ease-out);
+  }
+  .hud.is-on {
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity 0.08s ease,
+      transform 0.25s var(--ease-spring);
+  }
+  .hud__fan {
+    width: 32px;
+    height: 32px;
+    color: var(--heat);
+  }
+  .hud__fan svg {
+    width: 100%;
+    height: 100%;
+  }
+  .hud__title {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .hud__bar {
+    width: 164px;
+  }
+  .hud__bar[hidden] {
+    display: none;
+  }
+  .hud__detail {
+    font-size: 12px;
+    color: rgba(245, 245, 247, 0.66);
+  }
+</style>

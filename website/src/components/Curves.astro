@@ -1,0 +1,444 @@
+---
+import Icon from './Icon.astro';
+
+// Curve chart geometry (SVG user units). x: 30–105 °C, y: 0–100% of the fan's range.
+const W = 640, H = 340, T0 = 30, T1 = 105;
+const x = (t: number) => ((t - T0) / (T1 - T0)) * W;
+const y = (p: number) => H - (p / 100) * H;
+const temps = [30, 40, 50, 60, 70, 80, 90, 100];
+const rpms = [
+  [0, '2,317'],
+  [25, '3,694'],
+  [50, '5,072'],
+  [75, '6,449'],
+  [100, '7,826'],
+] as const;
+---
+<section class="section curves" id="curves" aria-labelledby="curves-title">
+  <div class="wrap">
+    <div class="section-head">
+      <h2 class="h2" id="curves-title">Draw the curve. Fans follow.</h2>
+      <p class="lead">
+        Choose where the fans start ramping and where they reach full speed. FanPilot spins them up quickly when things heat up and eases them down gently as they cool, so you don't hear them hunting up and down.
+      </p>
+    </div>
+
+    <div class="curves__grid">
+      <div class="pw mac-window mac-ui" data-pw>
+        <div class="mac-window__bar">
+          <div class="lights" aria-hidden="true"><i></i><i></i><i></i></div>
+          <div class="mac-window__title">FanPilot Profiles</div>
+        </div>
+        <div class="pw__body">
+          <div class="pw__side">
+            <div class="pw__list" data-pw-list role="listbox" aria-label="Profiles"></div>
+            <div class="pw__sidebar-foot">
+              <button class="mac-btn mac-btn--icon mac-btn--plain" type="button" data-pw-add aria-label="Add profile"><Icon name="plus" /></button>
+              <button class="mac-btn mac-btn--icon mac-btn--plain" type="button" data-pw-remove aria-label="Delete profile"><Icon name="minus" /></button>
+            </div>
+          </div>
+          <div class="pw__editor" data-pw-editor></div>
+        </div>
+      </div>
+
+      <div class="cchart">
+        <div class="cchart__top">
+          <div class="cchart__title">
+            <b data-cc-name>Custom</b>
+            <span class="tnum" data-cc-summary>CPU average 50–80 °C</span>
+          </div>
+          <div class="mac-seg cchart__fan" role="group" aria-label="Fan" data-cc-fan hidden>
+            <button type="button" data-cc-fanbtn="0" aria-pressed="true">Fan 1</button>
+            <button type="button" data-cc-fanbtn="1" aria-pressed="false">Fan 2</button>
+          </div>
+        </div>
+        <svg class="cchart__svg" viewBox={`-62 -16 ${W + 120} ${H + 56}`} data-cc-svg role="group" aria-label="Fan curve. Drag the two handles to change where the ramp starts and where it reaches full speed.">
+          <defs>
+            <linearGradient id="cc-fill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="var(--hot)" stop-opacity=".22" />
+              <stop offset="1" stop-color="var(--cool)" stop-opacity=".02" />
+            </linearGradient>
+            <linearGradient id="cc-stroke" x1="0" y1="1" x2="1" y2="0">
+              <stop offset="0" stop-color="var(--cool)" />
+              <stop offset="1" stop-color="var(--hot)" />
+            </linearGradient>
+          </defs>
+          {temps.map((t) => <line class="cc__grid" x1={x(t)} x2={x(t)} y1="0" y2={H} />)}
+          {rpms.map(([p]) => <line class="cc__grid" x1="0" x2={W} y1={y(p)} y2={y(p)} />)}
+          {temps.map((t) => <text class="cc__tick" x={x(t)} y={H + 24} text-anchor="middle">{t}°</text>)}
+          {rpms.map(([p, r]) => <text class="cc__tick" x={W + 12} y={y(p) + 4}>{r}</text>)}
+          {rpms.map(([p]) => <text class="cc__tick" x="-12" y={y(p) + 4} text-anchor="end">{p}%</text>)}
+          <text class="cc__axis" x={W / 2} y={H + 48} text-anchor="middle" data-cc-xlabel>CPU average, °C</text>
+          <path class="cc__area" data-cc-area d="" />
+          <path class="cc__line" data-cc-line d="" />
+          <g class="cc__live" data-cc-live>
+            <line class="cc__liveline" y1="0" y2={H} />
+            <circle r="7" />
+            <g class="cc__tip" data-cc-tip>
+              <rect rx="8" height="30" y="-46" />
+              <text y="-26" text-anchor="middle" data-cc-tiptext>44 °C</text>
+            </g>
+          </g>
+          <g class="cc__handle" data-cc-handle="from" tabindex="0" role="slider" aria-label="Start ramping at" aria-valuemin="30" aria-valuemax="95" aria-valuenow="50">
+            <circle class="cc__hit" r="22" />
+            <circle class="cc__knob" r="9" />
+            <text class="cc__hlabel" x="-14" y="-16" text-anchor="end">50 °C</text>
+          </g>
+          <g class="cc__handle" data-cc-handle="to" tabindex="0" role="slider" aria-label="Full speed at" aria-valuemin="35" aria-valuemax="105" aria-valuenow="80">
+            <circle class="cc__hit" r="22" />
+            <circle class="cc__knob" r="9" />
+            <text class="cc__hlabel" y="-20" text-anchor="middle">80 °C</text>
+          </g>
+        </svg>
+        <p class="cchart__lock" data-cc-lock hidden><Icon name="lock" /> Built-in profiles are read-only. Duplicate one to change its curve.</p>
+        <p class="cchart__lock" data-cc-flat hidden>This fan isn't on a curve. Set its mode to Follow temperature to draw one.</p>
+
+        <div class="smooth">
+          <div class="smooth__head">
+            <b>Last 60 seconds</b>
+            <span class="smooth__legend"><i class="smooth__sw smooth__sw--d"></i>Curve asks for <i class="smooth__sw smooth__sw--s"></i>Fans get</span>
+          </div>
+          <canvas class="smooth__chart" data-smooth role="img" aria-label="Fan speed the curve asks for against the gentler speed the fans actually get, over the last minute"></canvas>
+          <div class="smooth__load">
+            <span>Workload</span>
+            <div class="mac-seg" role="group" aria-label="Simulated workload">
+              <button type="button" data-load="idle" aria-pressed="true">Idle</button>
+              <button type="button" data-load="browse" aria-pressed="false">Browsing</button>
+              <button type="button" data-load="build" aria-pressed="false">Xcode build</button>
+              <button type="button" data-load="render" aria-pressed="false">Render</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style is:global>
+  .curves__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 560px) minmax(0, 1fr);
+    gap: clamp(1.5rem, 4vw, 3.5rem);
+    align-items: start;
+  }
+  .pw__body {
+    display: grid;
+    grid-template-columns: 170px 1fr;
+    min-height: 460px;
+  }
+  .pw__side {
+    display: flex;
+    flex-direction: column;
+    background: rgba(255, 255, 255, 0.03);
+    border-right: 1px solid rgba(255, 255, 255, 0.07);
+  }
+  .pw__list {
+    flex: 1;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+  .pw__section {
+    padding: 8px 8px 3px;
+    font-size: 11.5px;
+    font-weight: 650;
+    color: rgba(245, 245, 247, 0.5);
+  }
+  .pw__row {
+    display: block;
+    width: 100%;
+    height: 26px;
+    padding: 0 8px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    text-align: left;
+    font: 13px/26px var(--mac);
+    color: var(--frost);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .pw__row:hover {
+    background: rgba(255, 255, 255, 0.06);
+  }
+  .pw__row[aria-selected='true'] {
+    background: color-mix(in srgb, var(--heat) 85%, #1e1e21);
+    color: var(--heat-ink);
+  }
+  .pw__sidebar-foot {
+    display: flex;
+    gap: 2px;
+    padding: 6px;
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+  }
+  .pw__editor {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .pw__group {
+    display: flex;
+    flex-direction: column;
+    border-radius: 9px;
+    background: rgba(255, 255, 255, 0.045);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+  }
+  .pw__group-title {
+    font-size: 12px;
+    font-weight: 650;
+    color: rgba(245, 245, 247, 0.55);
+    margin: 0 0 -6px 4px;
+  }
+  .pw__field {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    min-height: 40px;
+    padding: 6px 12px;
+  }
+  .pw__field + .pw__field {
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+  }
+  .pw__field .mac-input {
+    width: 60%;
+    text-align: right;
+  }
+  .pw__field .mac-range {
+    width: 150px;
+  }
+  .pw__note {
+    font-size: 12px;
+    color: rgba(245, 245, 247, 0.6);
+  }
+  .pw__stepper {
+    display: inline-flex;
+    border-radius: 6px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.12);
+  }
+  .pw__stepper button {
+    width: 22px;
+    height: 22px;
+    border: 0;
+    background: transparent;
+    color: var(--frost);
+    display: grid;
+    place-items: center;
+  }
+  .pw__stepper button + button {
+    border-left: 1px solid rgba(0, 0, 0, 0.3);
+  }
+  .pw__stepper button:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+  .pw__stepper .icon {
+    width: 10px;
+    height: 10px;
+  }
+  .pw__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .cchart {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .cchart__top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 1rem;
+  }
+  .cchart__title {
+    display: flex;
+    flex-direction: column;
+  }
+  .cchart__title b {
+    font-size: 1.5rem;
+    font-weight: 740;
+    letter-spacing: -0.02em;
+  }
+  .cchart__title span {
+    color: var(--fog);
+  }
+  .cchart__fan[hidden] {
+    display: none;
+  }
+  .cchart__svg {
+    width: 100%;
+    height: auto;
+    overflow: visible;
+    touch-action: none;
+    user-select: none;
+  }
+  .cc__grid {
+    stroke: rgba(255, 255, 255, 0.07);
+  }
+  .cc__tick {
+    fill: var(--fog-2);
+    font: 500 13px var(--sans);
+    font-variant-numeric: tabular-nums;
+  }
+  .cc__axis {
+    fill: var(--fog);
+    font: 500 13px var(--sans);
+  }
+  .cc__area {
+    fill: url(#cc-fill);
+  }
+  .cc__line {
+    fill: none;
+    stroke: url(#cc-stroke);
+    stroke-width: 4;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+  }
+  .cc__liveline {
+    stroke: rgba(255, 255, 255, 0.3);
+    stroke-dasharray: 3 5;
+  }
+  .cc__live circle {
+    fill: var(--heat);
+    stroke: var(--ink);
+    stroke-width: 3;
+  }
+  .cc__tip rect {
+    fill: rgba(30, 30, 34, 0.94);
+    stroke: rgba(255, 255, 255, 0.12);
+  }
+  .cc__tip text {
+    fill: var(--frost);
+    font: 600 13px var(--sans);
+    font-variant-numeric: tabular-nums;
+  }
+  .cc__handle {
+    cursor: grab;
+    outline: none;
+  }
+  .cc__handle.is-drag {
+    cursor: grabbing;
+  }
+  .cc__hit {
+    fill: transparent;
+  }
+  .cc__knob {
+    fill: var(--frost);
+    stroke: var(--ink);
+    stroke-width: 3;
+    transition: r 0.15s;
+  }
+  .cc__handle:hover .cc__knob,
+  .cc__handle.is-drag .cc__knob {
+    r: 11;
+  }
+  .cc__handle:focus-visible .cc__knob {
+    stroke: var(--heat);
+    stroke-width: 4;
+  }
+  .cc__hlabel {
+    fill: var(--frost);
+    font: 650 14px var(--sans);
+    font-variant-numeric: tabular-nums;
+  }
+  .cchart.is-locked .cc__handle {
+    cursor: not-allowed;
+  }
+  .cchart.is-locked .cc__knob {
+    fill: var(--ink-4);
+    stroke: rgba(255, 255, 255, 0.4);
+  }
+  .cchart__lock {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9375rem;
+    color: var(--fog);
+  }
+  .cchart__lock[hidden] {
+    display: none;
+  }
+  .smooth {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--line);
+  }
+  .smooth__head {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 0.9375rem;
+  }
+  .smooth__legend {
+    color: var(--fog);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .smooth__sw {
+    display: inline-block;
+    width: 14px;
+    height: 3px;
+    border-radius: 2px;
+  }
+  .smooth__sw--d {
+    background: repeating-linear-gradient(to right, var(--fog) 0 4px, transparent 4px 7px);
+  }
+  .smooth__sw--s {
+    background: var(--heat);
+    margin-left: 10px;
+  }
+  .smooth__chart {
+    width: 100%;
+    height: 120px;
+  }
+  .smooth__load {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.9375rem;
+    color: var(--fog);
+  }
+  .smooth__load .mac-seg button {
+    height: 26px;
+    font-size: 13px;
+  }
+  @media (max-width: 1100px) {
+    .curves__grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .pw {
+      max-width: 600px;
+    }
+  }
+  @media (max-width: 560px) {
+    .pw__body {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .pw__side {
+      border-right: 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    }
+    .pw__list {
+      flex-direction: row;
+      flex-wrap: wrap;
+    }
+    .pw__section {
+      width: 100%;
+    }
+    .pw__row {
+      width: auto;
+    }
+  }
+</style>

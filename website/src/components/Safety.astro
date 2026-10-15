@@ -1,0 +1,221 @@
+---
+import Icon from './Icon.astro';
+
+const rules = [
+  { id: 'quit', title: 'You quit', text: 'FanPilot hands both fans back to macOS before it closes.', action: 'Quit FanPilot' },
+  { id: 'sleep', title: 'Your Mac sleeps', text: 'Fans go back to automatic before sleep, and FanPilot picks up again a few seconds after you wake it.', action: 'Sleep the Mac' },
+  { id: 'crash', title: 'The app crashes', text: 'A small background helper notices and resets the fans on its own.', action: 'Crash the app' },
+  { id: 'mfc', title: 'Macs Fan Control opens', text: "FanPilot steps aside while it runs, so the two apps never fight over the fans.", action: 'Open Macs Fan Control' },
+  { id: 'floor', title: 'You ask for 0%', text: "The slowest FanPilot will go is the minimum speed Apple set for your fans. Never off.", action: 'Set 0%' },
+];
+---
+<section class="section safety" id="safety" aria-labelledby="safety-title">
+  <div class="wrap safety__grid">
+    <div>
+      <div class="section-head">
+        <h2 class="h2" id="safety-title">It always hands the fans back.</h2>
+        <p class="lead">Whatever happens, macOS gets the fans back. The background helper can change fan speed and nothing else. Try each case on the Mac below.</p>
+      </div>
+      <ul class="rules">
+        {
+          rules.map((r) => (
+            <li class="rule" data-rule={r.id}>
+              <div class="rule__text">
+                <h3>{r.title}</h3>
+                <p>{r.text}</p>
+              </div>
+              <button class="btn btn--ghost btn--sm" type="button" data-safety={r.id}>{r.action}</button>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+
+    <aside class="watch mac-window mac-ui" aria-label="Fan state of the simulated Mac">
+      <div class="mac-window__bar">
+        <div class="lights" aria-hidden="true"><i></i><i></i><i></i></div>
+        <div class="mac-window__title">Fans</div>
+      </div>
+      <div class="watch__body">
+        <div class="watch__state">
+          <span class="watch__app" data-watch-app>FanPilot running</span>
+          <span class="watch__ctl tnum" data-bind="activeName2">Automatic</span>
+        </div>
+        {
+          [0, 1].map((i) => (
+            <div class="watch__fan" data-watch-fan={i}>
+              <span class="watch__spin" data-spin={i}>
+                <Icon name="fan" />
+              </span>
+              <div class="watch__meta">
+                <div class="watch__line">
+                  <b>{i === 0 ? 'Left fan' : 'Right fan'}</b>
+                  <span class="mac-badge" data-badge>Auto</span>
+                  <span class="watch__rpm tnum" data-rpm>0 RPM</span>
+                </div>
+                <div class="mac-progress"><i data-bar /></div>
+              </div>
+            </div>
+          ))
+        }
+        <ol class="watch__log tnum" data-safety-log aria-live="polite">
+          <li class="muted">Pick a case on the left to see what happens to the fans.</li>
+        </ol>
+        <button class="mac-btn" type="button" data-safety-reset>Relaunch FanPilot and reset</button>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<style is:global>
+  .safety__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+    gap: clamp(2rem, 5vw, 5rem);
+    align-items: start;
+  }
+  .rules {
+    border-top: 1px solid var(--line);
+  }
+  .rule {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding: 1.35rem 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .rule__text {
+    display: grid;
+    gap: 4px;
+  }
+  .rule h3 {
+    font-size: 1.125rem;
+    font-weight: 680;
+    letter-spacing: -0.01em;
+  }
+  .rule p {
+    color: var(--fog);
+    font-size: 0.975rem;
+    line-height: 1.5;
+    max-width: 48ch;
+  }
+  .rule.is-active h3 {
+    color: var(--heat);
+  }
+  .rule .btn {
+    flex: none;
+  }
+  .watch {
+    position: sticky;
+    top: 96px;
+  }
+  .watch__body {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .watch__state {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+  }
+  .watch__app {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: rgba(245, 245, 247, 0.75);
+  }
+  .watch__app::before {
+    content: '';
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #28c840;
+  }
+  .watch__app.is-off::before {
+    background: rgba(245, 245, 247, 0.3);
+  }
+  .watch__app.is-paused::before {
+    background: #febc2e;
+  }
+  .watch__ctl {
+    font-weight: 650;
+  }
+  .watch__fan {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .watch__spin {
+    width: 40px;
+    height: 40px;
+    flex: none;
+    color: rgba(245, 245, 247, 0.85);
+  }
+  .watch__spin .icon {
+    width: 100%;
+    height: 100%;
+  }
+  .watch__meta {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .watch__line {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .watch__rpm {
+    margin-left: auto;
+  }
+  .watch__log {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-height: 150px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.3);
+    font-size: 12.5px;
+    line-height: 1.45;
+  }
+  .watch__log li {
+    display: grid;
+    grid-template-columns: 3.4em 1fr;
+    gap: 8px;
+  }
+  .watch__log li.muted {
+    display: block;
+  }
+  .watch__log time {
+    color: rgba(245, 245, 247, 0.45);
+  }
+  .watch__log b {
+    color: var(--heat);
+    font-weight: 600;
+  }
+  .watch .mac-btn {
+    align-self: flex-start;
+  }
+  @media (max-width: 960px) {
+    .safety__grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .watch {
+      position: relative;
+      top: auto;
+    }
+  }
+  @media (max-width: 560px) {
+    .rule {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+  }
+</style>

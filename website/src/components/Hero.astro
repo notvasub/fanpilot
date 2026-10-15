@@ -1,0 +1,581 @@
+---
+import Icon from './Icon.astro';
+import MenuPanel from './MenuPanel.astro';
+import { fanOutline } from '../lib/icons';
+import { REPO_URL } from '../config';
+---
+<section class="hero" id="top" aria-labelledby="hero-title">
+  <div class="hero__glow" data-plane="0.18" aria-hidden="true"></div>
+
+  <div class="wrap hero__top">
+    <div class="hero__copy">
+      <h1 class="display hero__title" id="hero-title">
+        <span class="hero__line">Fan speed,</span>
+        <span class="hero__line">on two keys.</span>
+      </h1>
+      <p class="lead hero__lead">
+        Open-source fan control for Apple Silicon. <kbd>fn</kbd>&nbsp;<kbd>F5</kbd> makes the fans faster, <kbd>fn</kbd>&nbsp;<kbd>F4</kbd> slower, one step per press.
+      </p>
+      <div class="hero__cta">
+        <a class="btn btn--primary" href="#install"><Icon name="github" />Build from source</a>
+        <a class="btn btn--ghost" href="#film"><Icon name="play" />Watch the film</a>
+      </div>
+      <p class="hero__req">For Apple Silicon Macs on macOS 14 or later. <a href={REPO_URL}>Source on GitHub</a>.</p>
+    </div>
+
+    <div class="hero__keys" data-plane="-0.32" data-soft>
+      <div class="hero__keyrow" role="group" aria-label="FanPilot shortcuts">
+        <div class="hero__keycol">
+          <button class="key" type="button" data-key="fn" aria-label="fn key (hold with F4 or F5)">
+            <span class="key__fn">fn</span>
+            <span class="key__globe"><Icon name="globe" /></span>
+          </button>
+          <span class="hero__keycap">&nbsp;</span>
+        </div>
+        <span class="hero__plus" aria-hidden="true">+</span>
+        <div class="hero__keycol">
+          <button class="key" type="button" data-key="F4" aria-label="fn F4: slower. With shift: Automatic">
+            <span class="key__legend"><Icon name="magnifier" /><span>F4</span></span>
+          </button>
+          <span class="hero__keycap">slower</span>
+        </div>
+        <div class="hero__keycol">
+          <button class="key" type="button" data-key="F5" aria-label="fn F5: faster. With shift: next profile">
+            <span class="key__legend"><Icon name="mic" /><span>F5</span></span>
+          </button>
+          <span class="hero__keycap">faster</span>
+        </div>
+      </div>
+      <p class="hero__hint">
+        Press <kbd>fn</kbd> <kbd>F5</kbd> on your Mac, or click a key. Hold <kbd>⇧</kbd> for Automatic and the next profile.
+      </p>
+    </div>
+  </div>
+
+  <div class="wrap hero__stage">
+    <div class="desk" data-desk data-plane="-0.08">
+      <div class="desk__screen" data-desk-screen>
+        <div class="desk__wall" aria-hidden="true"></div>
+
+        <div class="desk__bar mac-ui">
+          <div class="desk__menus">
+            <b>Finder</b><span>File</span><span>Edit</span><span>View</span><span class="desk__wide">Go</span><span class="desk__wide">Window</span><span class="desk__wide">Help</span>
+          </div>
+          <div class="desk__status">
+            <button class="desk__item tnum is-open" type="button" data-menubar-item aria-expanded="true" aria-label="FanPilot menu">
+              <span class="desk__fan" data-menubar-fan set:html={fanOutline} />
+              <span data-bind="avgRpmBar">0</span>
+            </button>
+            <span class="desk__sys desk__wide" aria-hidden="true"><Icon name="battery" class="desk__bat" /></span>
+            <span class="desk__sys" aria-hidden="true"><Icon name="wifi" /></span>
+            <span class="desk__sys desk__wide" aria-hidden="true"><Icon name="magnifier" /></span>
+            <span class="desk__sys desk__wide" aria-hidden="true"><Icon name="controlCenter" /></span>
+            <span class="desk__clock tnum" data-clock>Wed 14 Oct&nbsp;&nbsp;9:41</span>
+          </div>
+        </div>
+
+        <div class="desk__panel" data-panel-wrap>
+          <MenuPanel />
+        </div>
+
+        <div class="desk__note-quit vibrancy mac-ui" data-quit-note hidden>
+          <span class="desk__note-icon" set:html={fanOutline} />
+          <div>
+            <b data-quit-title>FanPilot quit</b>
+            <p class="muted" data-quit-detail>Both fans went back to Automatic.</p>
+          </div>
+          <button class="mac-btn" type="button" data-relaunch>Open</button>
+        </div>
+
+        <div class="wl mac-window mac-ui">
+          <div class="mac-window__bar">
+            <div class="lights" aria-hidden="true"><i></i><i></i><i></i></div>
+            <div class="mac-window__title">Workload</div>
+          </div>
+          <div class="wl__body">
+            <div class="mac-seg wl__seg" role="group" aria-label="Simulated workload">
+              <button type="button" data-load="idle" aria-pressed="true">Idle</button>
+              <button type="button" data-load="browse" aria-pressed="false">Browsing</button>
+              <button type="button" data-load="build" aria-pressed="false">Xcode build</button>
+              <button type="button" data-load="render" aria-pressed="false">Render</button>
+            </div>
+            <canvas class="wl__chart" data-history aria-label="CPU temperature and fan speed over the last minute" role="img"></canvas>
+            <div class="wl__legend tnum">
+              <span><i class="wl__sw wl__sw--t"></i>CPU <b data-bind="cpuAvg">44.0</b> °C</span>
+              <span><i class="wl__sw wl__sw--r"></i>Fans <b data-bind="avgRpmWl">0</b> RPM</span>
+            </div>
+            <div class="wl__row">
+              <span>Fan sound</span>
+              <button class="mac-toggle" type="button" role="switch" aria-checked="false" data-sound aria-label="Play a synthesized fan sound"></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="hero__sim">
+      This Mac is live. It runs FanPilot's real control logic in your browser, with two fans modeled on a MacBook Pro with M5 Pro.
+    </p>
+  </div>
+</section>
+
+<style is:global>
+  .hero {
+    position: relative;
+    padding-top: clamp(112px, 15vh, 156px);
+    overflow: clip;
+  }
+  .hero__glow {
+    position: absolute;
+    inset: -10% -10% auto -10%;
+    height: 120vh;
+    pointer-events: none;
+    background:
+      radial-gradient(38% 42% at 72% 26%, color-mix(in srgb, var(--cool) 20%, transparent), transparent 70%),
+      radial-gradient(34% 40% at 94% 62%, color-mix(in srgb, var(--hot) calc(8% + var(--heat-t, 0) * 18%), transparent), transparent 70%),
+      radial-gradient(40% 50% at 18% 70%, rgba(76, 52, 140, 0.16), transparent 70%);
+  }
+  .hero__top {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr);
+    gap: clamp(2rem, 4vw, 4rem);
+    align-items: start;
+  }
+  .hero__title {
+    display: flex;
+    flex-direction: column;
+  }
+  .hero__line {
+    display: block;
+  }
+  .hero__lead {
+    margin-top: 1.5rem;
+    max-width: 28em;
+  }
+  kbd {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.7em;
+    height: 1.5em;
+    padding: 0 0.38em;
+    border-radius: 0.32em;
+    background: linear-gradient(180deg, #2a2a2f, #1c1c20);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.09),
+      0 1.5px 0 #050506;
+    font: 500 0.8em/1 var(--mac);
+    color: var(--frost);
+    vertical-align: 0.08em;
+  }
+  .hero__cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 2.25rem;
+  }
+  .hero__req {
+    margin-top: 1.25rem;
+    font-size: 0.9375rem;
+    color: var(--fog-2);
+  }
+  .hero__req a {
+    color: var(--fog);
+  }
+
+  .hero__keys {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.75rem;
+    padding-top: clamp(0.5rem, 2vw, 1.5rem);
+  }
+  .hero__keyrow {
+    --u: clamp(80px, 9.4vw, 146px);
+    display: flex;
+    align-items: flex-start;
+    gap: calc(var(--u) * 0.16);
+  }
+  .hero__keyrow .key {
+    --u: inherit;
+  }
+  .hero__keycol {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: calc(var(--u) * 0.14);
+  }
+  .hero__keycap {
+    font-size: 0.9375rem;
+    color: var(--fog-2);
+  }
+  .hero__plus {
+    height: var(--u);
+    display: grid;
+    place-items: center;
+    font-size: calc(var(--u) * 0.3);
+    font-weight: 300;
+    color: var(--fog-2);
+  }
+  .hero__hint {
+    font-size: 0.9375rem;
+    color: var(--fog);
+    text-align: center;
+    max-width: 30em;
+  }
+
+  .hero__stage {
+    position: relative;
+    margin-top: clamp(2.5rem, 5vw, 4.5rem);
+    perspective: 2000px;
+  }
+  .desk {
+    transform-origin: 50% 0%;
+    transform: rotateX(var(--tilt, 0deg));
+  }
+  .desk__screen {
+    --warm: calc(0.1 + var(--heat-t, 0) * 0.3);
+    position: relative;
+    height: clamp(520px, 60vw, 640px);
+    border-radius: 18px 18px 0 0;
+    border: 1px solid var(--line-2);
+    border-bottom: 0;
+    overflow: hidden;
+    isolation: isolate;
+    background: #0b0d14;
+  }
+  .desk__screen::after {
+    content: '';
+    position: absolute;
+    inset: auto 0 0 0;
+    height: 40%;
+    background: linear-gradient(to bottom, transparent, var(--ink));
+    pointer-events: none;
+    z-index: 3;
+  }
+  .desk__wall {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+      radial-gradient(60% 70% at 18% 22%, rgba(56, 189, 248, calc(0.2 - var(--heat-t, 0) * 0.12)), transparent 70%),
+      radial-gradient(55% 65% at 85% 85%, rgba(255, 106, 61, var(--warm)), transparent 70%),
+      radial-gradient(80% 80% at 60% 30%, rgba(76, 52, 140, 0.22), transparent 70%),
+      linear-gradient(160deg, #0d1018 0%, #0a0a0f 55%, #120c10 100%);
+    transition: background 0.6s;
+  }
+  .desk__bar {
+    position: relative;
+    z-index: 4;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 10px 0 18px;
+    background: rgba(16, 16, 20, 0.55);
+    -webkit-backdrop-filter: blur(24px) saturate(160%);
+    backdrop-filter: blur(24px) saturate(160%);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .desk__menus {
+    display: flex;
+    gap: 20px;
+  }
+  .desk__status {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .desk__item {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    height: 22px;
+    padding: 0 7px;
+    border: 0;
+    border-radius: 5px;
+    background: transparent;
+    font: 500 13px/1 var(--mac);
+    color: var(--frost);
+  }
+  .desk__item:hover,
+  .desk__item.is-open {
+    background: rgba(255, 255, 255, 0.18);
+  }
+  .desk__item[hidden] {
+    display: none;
+  }
+  .desk__fan {
+    width: 15px;
+    height: 15px;
+  }
+  .desk__fan svg {
+    width: 100%;
+    height: 100%;
+  }
+  .desk__sys {
+    display: inline-flex;
+    padding: 0 6px;
+  }
+  .desk__sys .icon {
+    width: 15px;
+    height: 15px;
+  }
+  .desk__sys .desk__bat {
+    width: 24px;
+    height: 15px;
+  }
+  .desk__clock {
+    padding: 0 6px 0 8px;
+    white-space: nowrap;
+  }
+  .desk__panel {
+    position: absolute;
+    z-index: 5;
+    top: 36px;
+    right: clamp(12px, 15%, 230px);
+    transform-origin: 85% 0;
+    transition:
+      opacity 0.18s ease,
+      transform 0.18s var(--ease-out);
+  }
+  .desk__panel.is-closed {
+    opacity: 0;
+    transform: scale(0.97) translateY(-4px);
+    pointer-events: none;
+  }
+  .desk__note-quit {
+    position: absolute;
+    z-index: 5;
+    top: 40px;
+    right: 16px;
+    width: 330px;
+    padding: 12px 14px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .desk__note-quit[hidden] {
+    display: none;
+  }
+  .desk__note-quit p {
+    font-size: 12.5px;
+  }
+  .desk__note-icon {
+    width: 28px;
+    height: 28px;
+    flex: none;
+  }
+  .desk__note-quit > div {
+    flex: 1;
+  }
+  .wl {
+    position: absolute;
+    z-index: 2;
+    left: clamp(16px, 5%, 72px);
+    top: 70px;
+    width: 372px;
+  }
+  .wl__body {
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .wl__seg {
+    align-self: stretch;
+  }
+  .wl__seg button {
+    flex: 1;
+    padding: 0 6px;
+  }
+  .wl__chart {
+    width: 100%;
+    height: 120px;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.28);
+  }
+  .wl__legend {
+    display: flex;
+    gap: 16px;
+    font-size: 12px;
+    color: rgba(245, 245, 247, 0.7);
+  }
+  .wl__legend b {
+    color: var(--frost);
+    font-weight: 600;
+  }
+  .wl__sw {
+    display: inline-block;
+    width: 10px;
+    height: 3px;
+    border-radius: 2px;
+    margin-right: 6px;
+    vertical-align: 3px;
+  }
+  .wl__sw--t {
+    background: var(--heat);
+  }
+  .wl__sw--r {
+    background: var(--frost);
+  }
+  .wl__row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .hero__sim {
+    position: relative;
+    z-index: 4;
+    margin: -3.5rem auto 0;
+    max-width: 44em;
+    text-align: center;
+    font-size: 0.875rem;
+    color: var(--fog-2);
+  }
+
+  /* One authored load moment: lines slam, keys drop, the Mac rises. */
+  @media (prefers-reduced-motion: no-preference) {
+    .js .hero__line {
+      animation: slam 0.7s var(--ease-spring) both;
+    }
+    .js .hero__line:nth-child(2) {
+      animation-delay: 0.12s;
+    }
+    .js .hero__lead,
+    .js .hero__cta,
+    .js .hero__req {
+      animation: rise 0.8s var(--ease-out) 0.3s both;
+    }
+    .js .hero__keycol,
+    .js .hero__plus {
+      animation: drop 0.6s var(--ease-spring) both;
+    }
+    .js .hero__keycol:nth-child(1) {
+      animation-delay: 0.35s;
+    }
+    .js .hero__plus {
+      animation-delay: 0.42s;
+    }
+    .js .hero__keycol:nth-child(3) {
+      animation-delay: 0.48s;
+    }
+    .js .hero__keycol:nth-child(4) {
+      animation-delay: 0.58s;
+    }
+    .js .hero__hint {
+      animation: rise 0.8s var(--ease-out) 0.8s both;
+    }
+    .js .hero__stage {
+      animation: lift 1.2s var(--ease-out) 0.25s both;
+    }
+  }
+  @keyframes slam {
+    from {
+      opacity: 0;
+      transform: scale(1.12) translateY(6px);
+      filter: blur(6px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+      filter: none;
+    }
+  }
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes drop {
+    from {
+      opacity: 0;
+      transform: translateY(-28px) scale(0.94);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes lift {
+    from {
+      opacity: 0;
+      transform: translateY(80px);
+      filter: blur(8px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+      filter: none;
+    }
+  }
+
+  @media (max-width: 1100px) {
+    .desk__wide {
+      display: none !important;
+    }
+    .wl {
+      width: 320px;
+    }
+  }
+  @media (max-width: 900px) {
+    .hero__top {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .hero__keys {
+      align-items: flex-start;
+    }
+    .hero__hint {
+      text-align: left;
+    }
+    .desk__screen {
+      height: auto;
+      padding-bottom: 80px;
+    }
+    .desk__panel {
+      position: relative;
+      top: auto;
+      right: auto;
+      margin: 10px auto 0;
+      width: fit-content;
+    }
+    .wl {
+      position: relative;
+      left: auto;
+      top: auto;
+      margin: 14px auto 0;
+      width: min(340px, calc(100% - 24px));
+    }
+    .desk__note-quit {
+      left: 12px;
+      right: 12px;
+      width: auto;
+    }
+  }
+  @media (max-width: 560px) {
+    .hero__keyrow {
+      --u: clamp(64px, 21vw, 96px);
+    }
+    .desk__menus span {
+      display: none;
+    }
+    .desk__panel .mp {
+      width: min(320px, calc(100vw - 2 * var(--gutter) - 20px));
+    }
+    .wl__seg button {
+      font-size: 11.5px;
+      padding: 0 4px;
+    }
+    .hero__sim {
+      margin-top: -2.5rem;
+    }
+  }
+</style>

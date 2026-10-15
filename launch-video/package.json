@@ -1,0 +1,24 @@
+{
+  "name": "fanpilot-launch-video",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "studio": "remotion studio src/index.ts",
+    "audio": "node audio/mix.mjs",
+    "render:main": "remotion render src/index.ts Main out/fanpilot-launch-16x9.mp4",
+    "render:vertical": "remotion render src/index.ts Vertical out/fanpilot-launch-9x16.mp4",
+    "render:teaser": "remotion render src/index.ts Teaser out/fanpilot-teaser-loop-16x9.mp4",
+    "render:teaser-vertical": "remotion render src/index.ts TeaserVertical out/fanpilot-teaser-loop-9x16.mp4",
+    "stills": "node scripts/stills.mjs"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.535",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "remotion": "4.0.535"
+  },
+  "devDependencies": {
+    "@types/react": "19.1.8",
+    "typescript": "5.8.3"
+  }
+}

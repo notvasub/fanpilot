@@ -1,0 +1,82 @@
+---
+import { appIcon } from '../lib/icons';
+import { REPO_URL, blobURL } from '../config';
+---
+<footer class="foot">
+  <div class="wrap foot__inner">
+    <div class="foot__brand">
+      <span class="foot__icon" data-spin-icon set:html={appIcon('foot')} />
+      <div>
+        <p class="foot__name">FanPilot</p>
+        <p class="foot__tag">Take the controls.</p>
+      </div>
+    </div>
+    <nav class="foot__links" aria-label="Project">
+      <a href={REPO_URL}>Source</a>
+      <a href={`${REPO_URL}/issues`}>Issues</a>
+      <a href={blobURL('README.md')}>README</a>
+    </nav>
+    <p class="foot__fine">
+      FanPilot is an independent open-source project, not affiliated with Apple or Macs Fan Control.
+    </p>
+  </div>
+</footer>
+
+<style is:global>
+  .foot {
+    padding: clamp(4rem, 8vw, 6rem) 0 3rem;
+    border-top: 1px solid var(--line);
+  }
+  .foot__inner {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 2rem 3rem;
+    align-items: center;
+  }
+  .foot__brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .foot__icon {
+    width: 52px;
+    height: 52px;
+  }
+  .foot__name {
+    font-size: 1.375rem;
+    font-weight: 780;
+    letter-spacing: -0.03em;
+  }
+  .foot__tag {
+    color: var(--fog);
+  }
+  .foot__links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 1.5rem;
+    color: var(--fog);
+  }
+  .foot__links a {
+    text-decoration: none;
+  }
+  .foot__links a:hover {
+    color: var(--frost);
+  }
+  .foot__fine {
+    grid-column: 1 / -1;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--line);
+    font-size: 0.875rem;
+    color: var(--fog-2);
+    max-width: 80ch;
+  }
+  @media (max-width: 700px) {
+    .foot__inner {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .foot__links {
+      justify-content: flex-start;
+    }
+  }
+</style>

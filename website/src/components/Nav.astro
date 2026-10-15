@@ -1,0 +1,129 @@
+---
+import Icon from './Icon.astro';
+import { appIcon, fanOutline } from '../lib/icons';
+import { REPO_URL } from '../config';
+
+const links = [
+  ['Film', '#film'],
+  ['Shortcuts', '#shortcuts'],
+  ['Profiles', '#profiles'],
+  ['Curves', '#curves'],
+  ['Safety', '#safety'],
+  ['Install', '#install'],
+];
+---
+<header class="nav" data-nav>
+  <div class="nav__inner wrap">
+    <a class="nav__brand" href="#top" aria-label="FanPilot, back to top">
+      <span class="nav__icon" set:html={appIcon('nav')} />
+      <span>FanPilot</span>
+    </a>
+    <nav class="nav__links" aria-label="Sections">
+      {links.map(([label, href]) => <a href={href}>{label}</a>)}
+    </nav>
+    <div class="nav__end">
+      <a class="nav__pill tnum" href="#top" title="Live average fan speed of the simulated Mac on this page" aria-label="Simulated fan speed">
+        <span class="nav__fan" data-menubar-fan set:html={fanOutline} />
+        <span data-bind="avgRpm">0</span>
+      </a>
+      <a class="btn btn--light btn--sm nav__gh" href={REPO_URL}>
+        <Icon name="github" />
+        <span>GitHub</span>
+      </a>
+    </div>
+  </div>
+</header>
+
+<style is:global>
+  .nav {
+    position: fixed;
+    inset: 0 0 auto 0;
+    z-index: 50;
+    height: 64px;
+    transition:
+      background-color 0.3s ease,
+      border-color 0.3s ease;
+    border-bottom: 1px solid transparent;
+  }
+  .nav.is-scrolled {
+    background: rgba(10, 10, 11, 0.72);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    backdrop-filter: blur(20px) saturate(160%);
+    border-bottom-color: var(--line);
+  }
+  .nav__inner {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+  }
+  .nav__brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 750;
+    font-size: 1.0625rem;
+    letter-spacing: -0.02em;
+    text-decoration: none;
+  }
+  .nav__icon {
+    width: 28px;
+    height: 28px;
+  }
+  .nav__links {
+    display: flex;
+    gap: 1.6rem;
+    font-size: 0.9375rem;
+  }
+  .nav__links a {
+    color: var(--fog);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .nav__links a:hover,
+  .nav__links a[aria-current='true'] {
+    color: var(--frost);
+  }
+  .nav__end {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .nav__pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 30px;
+    padding: 0 10px;
+    border-radius: 7px;
+    background: rgba(255, 255, 255, 0.07);
+    font: 500 13px/1 var(--mac);
+    color: var(--frost);
+    text-decoration: none;
+    min-width: 76px;
+  }
+  .nav__fan {
+    width: 16px;
+    height: 16px;
+    color: var(--frost);
+  }
+  .nav__fan svg {
+    width: 100%;
+    height: 100%;
+  }
+  @media (max-width: 1100px) {
+    .nav__links {
+      display: none;
+    }
+  }
+  @media (max-width: 480px) {
+    .nav__gh span {
+      display: none;
+    }
+    .nav__gh {
+      width: 36px;
+      padding: 0;
+    }
+  }
+</style>

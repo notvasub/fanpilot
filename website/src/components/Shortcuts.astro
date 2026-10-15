@@ -1,0 +1,384 @@
+---
+import Icon from './Icon.astro';
+import { fanFill, type IconName } from '../lib/icons';
+
+type K = { id?: string; label?: string; w?: number; icon?: IconName; h?: number; sub?: string };
+const fnRow: K[] = [
+  { label: 'esc', w: 1.5 },
+  { id: 'F1', icon: 'sunLow' },
+  { id: 'F2', icon: 'sunHigh' },
+  { id: 'F3', icon: 'mission' },
+  { id: 'F4', icon: 'magnifier' },
+  { id: 'F5', icon: 'mic' },
+  { id: 'F6', icon: 'moon' },
+  { id: 'F7', icon: 'rewind' },
+  { id: 'F8', icon: 'playPause' },
+  { id: 'F9', icon: 'forward' },
+  { id: 'F10', icon: 'speaker0' },
+  { id: 'F11', icon: 'speaker1' },
+  { id: 'F12', icon: 'speaker2' },
+  { label: '', w: 1.5 },
+];
+const row = (s: string) => s.split(' ').map((label) => ({ label }));
+const rows: K[][] = [
+  [...row('` 1 2 3 4 5 6 7 8 9 0 - ='), { label: 'delete', w: 2 }],
+  [{ label: 'tab', w: 1.5 }, ...row('Q W E R T Y U I O P [ ]'), { label: '\\', w: 1.5 }],
+  [{ label: 'caps lock', w: 1.8 }, ...row("A S D F G H J K L ; '"), { label: 'return', w: 2.2 }],
+  [{ id: 'shift', label: 'shift', w: 2.35 }, ...row('Z X C V B N M , . /'), { label: 'shift', w: 2.65 }],
+];
+const bottom: K[] = [
+  { id: 'fn' },
+  { label: 'control' },
+  { label: 'option' },
+  { label: 'command', w: 1.25 },
+  { label: '', w: 5.5 },
+  { label: 'command', w: 1.25 },
+  { label: 'option' },
+];
+const lit = new Set(['fn', 'shift', 'F4', 'F5']);
+
+const shortcuts = [
+  { action: 'faster', keys: ['fn', 'F5'], name: 'Faster', text: 'Both fans up one step from wherever they are now, then held there.' },
+  { action: 'slower', keys: ['fn', 'F4'], name: 'Slower', text: "One step down. Never below the slowest speed your Mac's fans are built for." },
+  { action: 'auto', keys: ['fn', '⇧', 'F4'], name: 'Automatic', text: 'Hands both fans back to macOS in one press.' },
+  { action: 'next', keys: ['fn', '⇧', 'F5'], name: 'Next profile', text: 'Cycles Automatic, Quiet, Balanced, Performance, Full Speed and yours.' },
+];
+---
+<section class="section keys-sec" id="shortcuts" aria-labelledby="keys-title">
+  <div class="wrap">
+    <div class="section-head">
+      <h2 class="h2" id="keys-title">Four shortcuts. No permissions.</h2>
+      <p class="lead">
+        No Accessibility or Input Monitoring prompts to approve. F4 and F5 still open Spotlight and Dictation; FanPilot only answers when you hold <kbd>fn</kbd>.
+      </p>
+    </div>
+
+    <div class="kb-wrap" data-kb-wrap>
+      <div class="kb" data-kb role="group" aria-label="MacBook keyboard. The fn, shift, F4 and F5 keys work.">
+        <div class="kb__row kb__row--fn">
+          {
+            fnRow.map((k) =>
+              k.id && lit.has(k.id) ? (
+                <button class="key" type="button" style={`--w:${k.w ?? 1}`} data-key={k.id} aria-label={k.id === 'F4' ? 'fn F4: slower' : 'fn F5: faster'}>
+                  <span class="key__legend"><Icon name={k.icon!} /><span>{k.id}</span></span>
+                </button>
+              ) : (
+                <span class="key" style={`--w:${k.w ?? 1}`} data-dim aria-hidden="true">
+                  <span class="key__legend">
+                    {k.icon ? <Icon name={k.icon} /> : null}
+                    <span>{k.id ?? k.label}</span>
+                  </span>
+                </span>
+              ),
+            )
+          }
+        </div>
+        {
+          rows.map((r) => (
+            <div class="kb__row">
+              {r.map((k) =>
+                k.id === 'shift' ? (
+                  <button class="key" type="button" style={`--w:${k.w}`} data-key="shift" aria-pressed="false" aria-label="shift (toggle)">
+                    <span class="key__shift"><b>⇧</b>shift</span>
+                  </button>
+                ) : (
+                  <span class="key" style={`--w:${k.w ?? 1}`} data-dim aria-hidden="true">
+                    <span class="key__legend">{k.label}</span>
+                  </span>
+                ),
+              )}
+            </div>
+          ))
+        }
+        <div class="kb__row">
+          {
+            bottom.map((k) =>
+              k.id === 'fn' ? (
+                <button class="key" type="button" data-key="fn" aria-label="fn">
+                  <span class="key__fn">fn</span>
+                  <span class="key__globe"><Icon name="globe" /></span>
+                </button>
+              ) : (
+                <span class="key" style={`--w:${k.w ?? 1}`} data-dim aria-hidden="true">
+                  <span class="key__legend">{k.label}</span>
+                </span>
+              ),
+            )
+          }
+          <span class="kb__arrows" aria-hidden="true">
+            <span class="key" data-dim><span class="key__legend"><Icon name="triLeft" /></span></span>
+            <span class="kb__updown">
+              <span class="key" data-dim><span class="key__legend"><Icon name="triUp" /></span></span>
+              <span class="key" data-dim><span class="key__legend"><Icon name="triDown" /></span></span>
+            </span>
+            <span class="key" data-dim><span class="key__legend"><Icon name="triRight" /></span></span>
+          </span>
+        </div>
+      </div>
+      <p class="kb-caption">The lit keys work. Click them, or press <kbd>fn</kbd> <kbd>F5</kbd> on your own keyboard.</p>
+    </div>
+
+    <div class="speed" aria-live="off">
+      <span class="speed__fan" data-spin="avg" set:html={fanFill} />
+      <div class="speed__state">
+        <b class="tnum" data-bind="activeName">Automatic</b>
+        <span class="tnum" data-bind="speedDetail">Fans stopped at idle</span>
+      </div>
+      <div class="speed__track">
+        <div class="segbar speed__bar" data-speed-bar>
+          {Array.from({ length: 10 }, () => <i />)}
+        </div>
+        <div class="speed__scale tnum" aria-hidden="true"><span>2,317 RPM</span><span>7,826 RPM</span></div>
+      </div>
+      <div class="speed__step">
+        <span id="step-label">Step</span>
+        <div class="mac-seg" role="group" aria-labelledby="step-label" data-step-seg>
+          {[5, 10, 15, 20, 25].map((s) => <button type="button" data-step={s} aria-pressed={s === 10 ? 'true' : 'false'}>{s}%</button>)}
+        </div>
+      </div>
+    </div>
+
+    <ul class="combos">
+      {
+        shortcuts.map((s) => (
+          <li>
+            <button class="combo" type="button" data-shortcut={s.action}>
+              <span class="combo__keys">
+                {s.keys.map((k) => (
+                  <kbd>{k}</kbd>
+                ))}
+              </span>
+              <span class="combo__text">
+                <b>{s.name}</b>
+                <span>{s.text}</span>
+              </span>
+            </button>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style is:global>
+  .kb-wrap {
+    perspective: 1400px;
+    margin-inline: auto;
+    max-width: 1080px;
+  }
+  .kb {
+    --u: clamp(20px, 4.9vw, 68px);
+    --gap: calc(var(--u) * 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap);
+    padding: calc(var(--u) * 0.32);
+    border-radius: calc(var(--u) * 0.32);
+    background: linear-gradient(180deg, #141417, #0d0d10);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.05),
+      0 40px 80px -30px rgba(0, 0, 0, 0.8);
+    transform-origin: 50% 100%;
+    transform: rotateX(var(--kb-tilt, 0deg));
+    width: fit-content;
+    margin-inline: auto;
+  }
+  .kb__row {
+    display: flex;
+    gap: var(--gap);
+  }
+  .kb .key {
+    --u: inherit;
+    width: calc(var(--u) * var(--w, 1) + var(--gap) * (var(--w, 1) - 1));
+  }
+  .kb__row--fn .key {
+    height: calc(var(--u) * 0.72);
+  }
+  .kb .key[data-dim] .key__legend {
+    font-size: calc(var(--u) * 0.15);
+    color: rgba(216, 216, 220, 0.4);
+  }
+  .kb__row--fn .key[data-dim] .key__legend .icon {
+    width: calc(var(--u) * 0.22);
+    height: calc(var(--u) * 0.22);
+  }
+  .kb__row--fn .key .key__legend {
+    font-size: calc(var(--u) * 0.13);
+    gap: calc(var(--u) * 0.03);
+  }
+  .kb__arrows {
+    display: flex;
+    gap: var(--gap);
+    align-items: flex-end;
+  }
+  .kb__updown {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--gap) * 0.5);
+  }
+  .kb__updown .key,
+  .kb__arrows > .key {
+    height: calc(var(--u) * 0.48);
+  }
+  .kb__arrows .key__legend .icon {
+    width: calc(var(--u) * 0.2);
+    height: calc(var(--u) * 0.2);
+  }
+  .kb .key[aria-pressed='true'] {
+    color: var(--heat);
+  }
+  /* The four keys FanPilot uses read as live; the rest of the board recedes. */
+  .kb .key[data-dim] {
+    background: linear-gradient(180deg, #1d1d21 0%, #151518 100%);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.05),
+      0 calc(var(--u) * 0.05) 0 #050506;
+  }
+  .kb button.key:not(.is-lit):not(.is-down) {
+    color: var(--frost);
+    box-shadow:
+      inset 0 0 0 calc(var(--u) * 0.022) color-mix(in srgb, var(--heat) 45%, transparent),
+      inset 0 calc(var(--u) * 0.016) 0 rgba(255, 255, 255, 0.12),
+      0 calc(var(--u) * 0.055) 0 #050506,
+      0 calc(var(--u) * 0.1) calc(var(--u) * 0.14) rgba(0, 0, 0, 0.6);
+  }
+  .kb-caption {
+    margin-top: 1.25rem;
+    text-align: center;
+    font-size: 0.9375rem;
+    color: var(--fog);
+  }
+
+  .speed {
+    display: grid;
+    grid-template-columns: auto minmax(10rem, 13rem) 1fr auto;
+    align-items: center;
+    gap: clamp(1rem, 2.5vw, 2rem);
+    margin-top: clamp(3rem, 6vw, 4.5rem);
+    padding-block: 1.75rem;
+    border-block: 1px solid var(--line);
+  }
+  .speed__fan {
+    width: 56px;
+    height: 56px;
+    color: var(--heat);
+  }
+  .speed__fan svg {
+    width: 100%;
+    height: 100%;
+  }
+  .speed__state {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .speed__state b {
+    font-size: 1.5rem;
+    font-weight: 720;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+  }
+  .speed__state span {
+    color: var(--fog);
+    font-size: 0.9375rem;
+  }
+  .speed__bar {
+    gap: 6px;
+  }
+  .speed__bar > i {
+    height: 14px;
+    border-radius: 4px;
+  }
+  .speed__scale {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+    font-size: 0.8125rem;
+    color: var(--fog-2);
+  }
+  .speed__step {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 0.875rem;
+    color: var(--fog-2);
+  }
+  .speed__step .mac-seg button {
+    height: 26px;
+    font-size: 13px;
+    padding: 0 9px;
+  }
+
+  .combos {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: clamp(1.5rem, 4vw, 4rem);
+  }
+  .combos li {
+    border-bottom: 1px solid var(--line);
+  }
+  .combo {
+    display: grid;
+    grid-template-columns: 9.5rem 1fr;
+    align-items: baseline;
+    gap: 1rem;
+    width: 100%;
+    padding: 1.5rem 0;
+    border: 0;
+    background: transparent;
+    text-align: left;
+    color: var(--frost);
+  }
+  .combo__keys {
+    display: flex;
+    gap: 5px;
+  }
+  .combo__keys kbd {
+    font-size: 0.95rem;
+    height: 1.9em;
+    min-width: 2.1em;
+  }
+  .combo__text {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .combo__text b {
+    font-size: 1.125rem;
+    font-weight: 680;
+    letter-spacing: -0.01em;
+  }
+  .combo__text span {
+    color: var(--fog);
+    font-size: 0.975rem;
+    line-height: 1.5;
+  }
+  .combo:hover b,
+  .combo.is-fired b {
+    color: var(--heat);
+  }
+  .combo.is-fired kbd {
+    box-shadow:
+      inset 0 0 0 1px color-mix(in srgb, var(--heat) 80%, transparent),
+      0 0.5px 0 #050506;
+    transform: translateY(1px);
+  }
+  @media (max-width: 960px) {
+    .speed {
+      grid-template-columns: auto 1fr;
+    }
+    .speed__track,
+    .speed__step {
+      grid-column: 1 / -1;
+    }
+    .combos {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  @media (max-width: 520px) {
+    .combo {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0.6rem;
+    }
+  }
+</style>

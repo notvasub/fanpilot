@@ -1,0 +1,56 @@
+{
+  "fps": 60,
+  "bpm": 120,
+  "duration": 35,
+  "teaserDuration": 6,
+  "fanRange": { "minRPM": 2317, "maxRPM": 7826 },
+  "scenes": {
+    "hook": [0, 3],
+    "turn": [3, 6],
+    "reveal": [6, 10],
+    "hero": [10, 16],
+    "profiles": [16, 20.5],
+    "curves": [20.5, 26],
+    "terminal": [26, 29],
+    "payoff": [29, 33],
+    "end": [33, 35]
+  },
+  "hook": { "title": 0.5, "hotPunch": 0.75, "menubar": 1.0, "tempFrom": 48, "tempTo": 92, "climbEnd": 2.3, "line2a": 2.5, "line2b": 2.62 },
+  "turn": { "fn": 3.5, "f5": 3.75, "untilNow": 4.0, "push": 5.0 },
+  "reveal": { "icon": 6.0, "wordmark": 7.0, "subA": 8.0, "subB": 8.5, "exit": 9.6 },
+  "hero": {
+    "startPercent": 40,
+    "startAuto": false,
+    "presses": [
+      { "t": 0.5, "keys": ["fn", "F5"], "percent": 50 },
+      { "t": 1.0, "keys": ["fn", "F5"], "percent": 60 },
+      { "t": 1.5, "keys": ["fn", "F5"], "percent": 70 },
+      { "t": 2.0, "keys": ["fn", "F5"], "percent": 80 },
+      { "t": 3.5, "keys": ["fn", "F4"], "percent": 70 },
+      { "t": 4.0, "keys": ["fn", "F4"], "percent": 60 },
+      { "t": 4.5, "keys": ["fn", "F4"], "percent": 50 },
+      { "t": 5.0, "keys": ["fn", "shift", "F4"], "percent": null }
+    ],
+    "end": 6.0
+  },
+  "teaser": {
+    "startPercent": 40,
+    "startAuto": true,
+    "presses": [
+      { "t": 0.5, "keys": ["fn", "F5"], "percent": 50 },
+      { "t": 1.0, "keys": ["fn", "F5"], "percent": 60 },
+      { "t": 1.5, "keys": ["fn", "F5"], "percent": 70 },
+      { "t": 2.0, "keys": ["fn", "F5"], "percent": 80 },
+      { "t": 3.0, "keys": ["fn", "F4"], "percent": 70 },
+      { "t": 3.5, "keys": ["fn", "F4"], "percent": 60 },
+      { "t": 4.0, "keys": ["fn", "F4"], "percent": 50 },
+      { "t": 4.5, "keys": ["fn", "shift", "F4"], "percent": null }
+    ],
+    "end": 6.0
+  },
+  "profiles": { "title": 16.0, "cuts": [16.5, 17.5, 18.5, 19.5] },
+  "curves": { "flip": 20.5, "text": 21.0, "grab": 21.5, "release": 24.0, "fromC": 50, "toStartC": 90, "toEndC": 70 },
+  "terminal": { "typeStart": 26.2, "typeEnd": 27.0, "output": 27.05, "shield": 27.4, "chips": [27.5, 27.7, 27.9] },
+  "payoff": { "pullEnd": 30.0, "words": [30.0, 30.5, 31.0] },
+  "end": { "tagline": 33.5, "silence": 34.0, "pulse": 34.067, "black": 34.6 }
+}
